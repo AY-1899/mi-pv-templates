@@ -74,6 +74,8 @@ git clone https://github.com/[your-username]/mi-pv-templates.git
 
 These templates are for **reference and educational purposes only**. They do not replace validated company SOPs or regulatory guidance. Always follow your organisation's approved procedures for live case processing, SRD authorship, and regulatory submissions.
 
+See [DISCLAIMER.md](https://github.com/AY-1899/medinfo-ai-toolkit/blob/main/DISCLAIMER.md) for terms of use, data privacy, and liability.
+
 ---
 
 ## Contact
