@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deviation & CAPA Drafting Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:         #f5f2ee;
+    --surface:    #ffffff;
+    --card:       #faf8f5;
+    --border:     #e8e2d9;
+    --border-hi:  #c8bfb0;
+    --accent:     #1a3a2a;
+    --accent-2:   #2d6147;
+    --accent-lt:  #e8f0eb;
+    --accent-dim: #4a8c6a;
+    --text:       #1a1510;
+    --text-2:     #5a5248;
+    --text-3:     #9a9088;
+    --error:      #c0392b;
+    --error-bg:   #fdf0ee;
+    --warn:       #8b6914;
+    --warn-bg:    #fef9ec;
+    --ok:         #1a6b3a;
+    --ok-bg:      #edf7f1;
+    --radius:     6px;
+    --shadow:     0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+    --shadow-lg:  0 2px 8px rgba(0,0,0,0.1), 0 12px 32px rgba(0,0,0,0.06);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--accent);
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+    min-height: 72px;
+  }
+
+  .header-brand {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+  }
+
+  .header-brand h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: #ffffff;
+    letter-spacing: -0.3px;
+  }
+
+  .header-brand .tagline {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    font-weight: 300;
+    letter-spacing: 0.05em;
+  }
+
+  .api-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .api-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+  }
+
+  .api-input {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: var(--radius);
+    color: rgba(255,255,255,0.9);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    padding: 7px 12px;
+    width: 240px;
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .api-input::placeholder { color: rgba(255,255,255,0.25); }
+  .api-input:focus { border-color: rgba(255,255,255,0.35); background: rgba(255,255,255,0.12); }
+
+  .api-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .api-dot.ok { background: #5dba7d; }
+
+  /* ── DISCLAIMER ── */
+  .disclaimer {
+    background: var(--warn-bg);
+    border-bottom: 1px solid #e8d88a;
+    padding: 9px 40px;
+    font-size: 12px;
+    color: var(--warn);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ── STEPPER ── */
+  .stepper {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .step-tab {
+    padding: 18px 28px 16px;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.15s;
+    user-select: none;
+    min-width: 160px;
+    position: relative;
+  }
+
+  .step-tab:hover { background: var(--card); }
+
+  .step-tab.active {
+    border-bottom-color: var(--accent);
+  }
+
+  .step-num {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-3);
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+
+  .step-tab.active .step-num {
+    background: var(--accent);
+    color: white;
+  }
+
+  .step-tab.done .step-num {
+    background: var(--ok);
+    color: white;
+  }
+
+  .step-info {}
+
+  .step-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-2);
+    display: block;
+    line-height: 1.3;
+  }
+
+  .step-tab.active .step-name { color: var(--accent); }
+
+  .step-sub {
+    font-size: 11px;
+    color: var(--text-3);
+    margin-top: 1px;
+  }
+
+  /* ── MAIN ── */
+  main {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ── PANEL HEADER ── */
+  .panel-head {
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .panel-head-text h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    color: var(--text);
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+  }
+
+  .panel-head-text p {
+    color: var(--text-2);
+    font-size: 13px;
+    max-width: 520px;
+    line-height: 1.7;
+  }
+
+  .step-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-3);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 10px;
+    white-space: nowrap;
+    margin-top: 4px;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+  }
+
+  .card-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-3);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── FORM ── */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+
+  .span2 { grid-column: span 2; }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+
+  label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-2);
+  }
+
+  .field-hint {
+    font-size: 11px;
+    color: var(--text-3);
+    margin-top: 3px;
+  }
+
+  input[type="text"],
+  select,
+  textarea {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    padding: 9px 12px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    width: 100%;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent-dim);
+    box-shadow: 0 0 0 3px rgba(74, 140, 106, 0.1);
+  }
+
+  select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239a9088' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+
+  textarea {
+    resize: vertical;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+  }
+
+  /* ── RCA METHOD TOGGLE ── */
+  .method-toggle {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .method-btn {
+    flex: 1;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--card);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s;
+  }
+
+  .method-btn:hover { border-color: var(--accent-dim); }
+
+  .method-btn.selected {
+    border-color: var(--accent);
+    background: var(--accent-lt);
+  }
+
+  .method-btn-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    display: block;
+    margin-bottom: 3px;
+  }
+
+  .method-btn.selected .method-btn-title { color: var(--accent); }
+
+  .method-btn-desc {
+    font-size: 11px;
+    color: var(--text-3);
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 1px 3px rgba(26,58,42,0.3);
+  }
+
+  .btn-primary:hover { background: var(--accent-2); box-shadow: 0 2px 6px rgba(26,58,42,0.35); }
+  .btn-primary:disabled { background: var(--border); color: var(--text-3); cursor: not-allowed; box-shadow: none; }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--text-2);
+    border: 1px solid var(--border);
+  }
+
+  .btn-outline:hover { border-color: var(--accent-dim); color: var(--accent); }
+
+  .btn-next {
+    background: var(--accent-lt);
+    color: var(--accent);
+    border: 1px solid #b8d9c6;
+  }
+
+  .btn-next:hover { background: #daeee3; }
+
+  .btn-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+
+  /* ── SEVERITY INDICATOR ── */
+  .severity-row {
+    display: flex;
+    gap: 8px;
+    margin: 12px 0;
+  }
+
+  .sev-pill {
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+
+  .sev-pill.critical { background: #fdf0ee; border-color: #e8c4be; color: #c0392b; }
+  .sev-pill.major    { background: #fef9ec; border-color: #e8d88a; color: #8b6914; }
+  .sev-pill.minor    { background: var(--ok-bg); border-color: #b8ddc6; color: var(--ok); }
+  .sev-pill.selected { opacity: 1; transform: scale(1.04); }
+  .sev-pill:not(.selected) { opacity: 0.45; }
+
+  /* ── ALERT ── */
+  .alert {
+    display: none;
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    margin-top: 12px;
+    font-size: 12px;
+  }
+
+  .alert.visible { display: flex; gap: 10px; align-items: flex-start; }
+  .alert-error { background: var(--error-bg); color: var(--error); border: 1px solid #e8b4ae; }
+  .alert-warn  { background: var(--warn-bg); color: var(--warn); border: 1px solid #e8d88a; }
+
+  /* ── OUTPUT ── */
+  .output-box {
+    display: none;
+    margin-top: 24px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+
+  .output-box.visible { display: block; }
+
+  .output-bar {
+    background: var(--accent);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .output-bar-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.7);
+  }
+
+  .btn-copy {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 4px;
+    color: rgba(255,255,255,0.8);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+
+  .btn-copy:hover { background: rgba(255,255,255,0.2); }
+
+  .output-body {
+    padding: 24px;
+    background: var(--surface);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    line-height: 1.9;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 520px;
+    overflow-y: auto;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── LOADING ── */
+  .loader {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 0;
+    color: var(--text-2);
+    font-size: 13px;
+  }
+
+  .loader.visible { display: flex; }
+
+  .spin {
+    width: 18px; height: 18px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── DIVIDER ── */
+  .divider { height: 1px; background: var(--border); margin: 24px 0; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 3px; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 660px) {
+    header { padding: 16px; }
+    .stepper { padding: 0 16px; }
+    main { padding: 24px 16px 60px; }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .span2 { grid-column: span 1; }
+    .api-input { width: 160px; }
+    .panel-head { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-brand">
+    <h1>Deviation & CAPA Tool</h1>
+    <span class="tagline">GxP Quality · Powered by Claude</span>
+  </div>
+  <div class="api-section">
+    <span class="api-label">API Key</span>
+    <input type="password" class="api-input" id="apiKey" placeholder="sk-ant-..." oninput="updateDot()">
+    <div class="api-dot" id="apiDot"></div>
+  </div>
+</header>
+
+<!-- DISCLAIMER -->
+<div class="disclaimer">
+  ⚠ &nbsp;Draft outputs only — all content requires review by a qualified Quality professional before entry into any GxP-regulated system. Do not enter batch-specific or commercially confidential data.
+</div>
+
+<!-- STEPPER -->
+<nav class="stepper" id="stepper">
+  <div class="step-tab active" id="tab-1" onclick="go(1)">
+    <div class="step-num">1</div>
+    <div class="step-info">
+      <span class="step-name">Intake</span>
+      <div class="step-sub">Classify the deviation</div>
+    </div>
+  </div>
+  <div class="step-tab" id="tab-2" onclick="go(2)">
+    <div class="step-num">2</div>
+    <div class="step-info">
+      <span class="step-name">Root Cause</span>
+      <div class="step-sub">5-Why or Ishikawa</div>
+    </div>
+  </div>
+  <div class="step-tab" id="tab-3" onclick="go(3)">
+    <div class="step-num">3</div>
+    <div class="step-info">
+      <span class="step-name">CAPA Plan</span>
+      <div class="step-sub">Draft actions</div>
+    </div>
+  </div>
+  <div class="step-tab" id="tab-4" onclick="go(4)">
+    <div class="step-num">4</div>
+    <div class="step-info">
+      <span class="step-name">Closure</span>
+      <div class="step-sub">Closure report</div>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main>
+
+  <!-- ── STEP 1: INTAKE ── -->
+  <div class="panel active" id="panel-1">
+    <div class="panel-head">
+      <div class="panel-head-text">
+        <h2>Deviation Intake</h2>
+        <p>Describe the quality event. Claude will structure it, classify severity, identify patient / product impact, and recommend immediate containment actions.</p>
+      </div>
+      <div class="step-badge">Step 1 of 4</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Event Details</div>
+      <div class="field" style="margin-bottom:16px;">
+        <label>Event Description</label>
+        <textarea id="s1-desc" rows="5" placeholder="Describe the quality event in detail — what happened, where, when, and what was observed..."></textarea>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Product / Material</label>
+          <input type="text" id="s1-product" placeholder="e.g. Product X, Batch 12345">
+        </div>
+        <div class="field">
+          <label>Process / Area</label>
+          <input type="text" id="s1-area" placeholder="e.g. Filling Line 2 / QC Laboratory">
+        </div>
+        <div class="field">
+          <label>Date of Occurrence</label>
+          <input type="text" id="s1-date" placeholder="DD-MMM-YYYY">
+        </div>
+        <div class="field">
+          <label>Date Detected</label>
+          <input type="text" id="s1-detected" placeholder="DD-MMM-YYYY">
+        </div>
+        <div class="field">
+          <label>GxP Context</label>
+          <select id="s1-gxp">
+            <option value="GMP">GMP — Good Manufacturing Practice</option>
+            <option value="GCP">GCP — Good Clinical Practice</option>
+            <option value="GLP">GLP — Good Laboratory Practice</option>
+            <option value="GDP">GDP — Good Distribution Practice</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Stage</label>
+          <select id="s1-stage">
+            <option value="In-process">In-process</option>
+            <option value="Finished product — not yet released">Finished product — not yet released</option>
+            <option value="Released product">Released product</option>
+            <option value="Distributed product">Distributed product</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert alert-warn" id="s1-alert">
+      ⚠ Possible patient safety impact detected. Ensure QP and senior management are notified immediately.
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="runStep1()">▶ &nbsp;Run Intake Analysis</button>
+    </div>
+
+    <div class="loader" id="load-1"><div class="spin"></div> Analysing quality event...</div>
+
+    <div class="output-box" id="out-1">
+      <div class="output-bar">
+        <span class="output-bar-label">Intake Summary</span>
+        <button class="btn-copy" onclick="copyText('out-1-body')">Copy</button>
+      </div>
+      <div class="output-body" id="out-1-body"></div>
+    </div>
+
+    <div class="btn-row" id="next-1" style="display:none;">
+      <button class="btn btn-next" onclick="go(2)">Continue to Root Cause →</button>
+    </div>
+  </div>
+
+  <!-- ── STEP 2: ROOT CAUSE ── -->
+  <div class="panel" id="panel-2">
+    <div class="panel-head">
+      <div class="panel-head-text">
+        <h2>Root Cause Analysis</h2>
+        <p>Choose your investigation method. Claude will conduct a structured analysis using only the facts you provide — speculative causes are clearly flagged.</p>
+      </div>
+      <div class="step-badge">Step 2 of 4</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Investigation Method</div>
+      <div class="method-toggle">
+        <div class="method-btn selected" id="method-5why" onclick="selectMethod('5why')">
+          <span class="method-btn-title">5-Why Analysis</span>
+          <div class="method-btn-desc">Best for focused, single-cause deviations. Drills down through sequential cause chains.</div>
+        </div>
+        <div class="method-btn" id="method-ishikawa" onclick="selectMethod('ishikawa')">
+          <span class="method-btn-title">Ishikawa (Fishbone)</span>
+          <div class="method-btn-desc">Best for complex or multifactorial deviations. Covers Man, Machine, Method, Material, Measurement, Environment.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Investigation Input</div>
+      <div class="field" style="margin-bottom:16px;">
+        <label>Deviation Summary</label>
+        <textarea id="s2-dev" rows="3" placeholder="Auto-filled from Step 1 — edit if needed..."></textarea>
+        <div class="field-hint">Populated from Step 1</div>
+      </div>
+      <div class="field" style="margin-bottom:16px;">
+        <label>Investigation Findings to Date</label>
+        <textarea id="s2-findings" rows="5" placeholder="Paste any known facts — lab results, equipment logs, operator observations, environmental data...&#10;&#10;If none yet, write: No investigation data available at this stage"></textarea>
+        <div class="field-hint">Claude will flag any points in the analysis where assumptions are made due to missing data</div>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Product / Process</label>
+          <input type="text" id="s2-product" placeholder="Auto-filled from Step 1">
+        </div>
+        <div class="field">
+          <label>Deviation Type</label>
+          <select id="s2-type">
+            <option value="Manufacturing deviation">Manufacturing deviation</option>
+            <option value="OOS / OOT laboratory result">OOS / OOT laboratory result</option>
+            <option value="Documentation error">Documentation error</option>
+            <option value="Equipment failure">Equipment failure</option>
+            <option value="Environmental excursion">Environmental excursion</option>
+            <option value="Material / supplier issue">Material / supplier issue</option>
+            <option value="Change control deviation">Change control deviation</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="runStep2()">▶ &nbsp;Run Root Cause Analysis</button>
+    </div>
+
+    <div class="loader" id="load-2"><div class="spin"></div> Conducting root cause analysis...</div>
+
+    <div class="output-box" id="out-2">
+      <div class="output-bar">
+        <span class="output-bar-label">Root Cause Analysis</span>
+        <button class="btn-copy" onclick="copyText('out-2-body')">Copy</button>
+      </div>
+      <div class="output-body" id="out-2-body"></div>
+    </div>
+
+    <div class="btn-row" id="next-2" style="display:none;">
+      <button class="btn btn-next" onclick="go(3)">Continue to CAPA Plan →</button>
+    </div>
+  </div>
+
+  <!-- ── STEP 3: CAPA PLAN ── -->
+  <div class="panel" id="panel-3">
+    <div class="panel-head">
+      <div class="panel-head-text">
+        <h2>CAPA Plan</h2>
+        <p>Confirm the root cause and Claude will draft specific corrective and preventive actions with owners, timelines, success criteria, and effectiveness measures.</p>
+      </div>
+      <div class="step-badge">Step 3 of 4</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">CAPA Inputs</div>
+      <div class="field" style="margin-bottom:16px;">
+        <label>Confirmed Root Cause</label>
+        <textarea id="s3-rc" rows="3" placeholder="State the confirmed root cause in one clear sentence — auto-filled from Step 2, edit to reflect confirmed finding..."></textarea>
+        <div class="field-hint">Edit to reflect the confirmed root cause from your investigation</div>
+      </div>
+      <div class="grid-3">
+        <div class="field">
+          <label>Root Cause Category</label>
+          <select id="s3-category">
+            <option value="Human error (training / procedure / workload)">Human error</option>
+            <option value="Procedural / SOP deficiency">Procedural / SOP deficiency</option>
+            <option value="Equipment / instrument failure">Equipment failure</option>
+            <option value="Environmental / facility">Environmental</option>
+            <option value="Material / supplier">Material / supplier</option>
+            <option value="Process design deficiency">Process design</option>
+            <option value="Management / oversight system">Management system</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Severity</label>
+          <select id="s3-severity">
+            <option value="Critical">Critical</option>
+            <option value="Major" selected>Major</option>
+            <option value="Minor">Minor</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Recurrence Risk</label>
+          <select id="s3-recurrence">
+            <option value="High">High</option>
+            <option value="Medium" selected>Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="field">
+        <label>Contributing Factors (optional)</label>
+        <textarea id="s3-contrib" rows="2" placeholder="Any secondary factors that contributed to the event but are not the primary root cause..."></textarea>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="runStep3()">▶ &nbsp;Draft CAPA Plan</button>
+    </div>
+
+    <div class="loader" id="load-3"><div class="spin"></div> Drafting CAPA plan...</div>
+
+    <div class="output-box" id="out-3">
+      <div class="output-bar">
+        <span class="output-bar-label">CAPA Plan Draft</span>
+        <button class="btn-copy" onclick="copyText('out-3-body')">Copy</button>
+      </div>
+      <div class="output-body" id="out-3-body"></div>
+    </div>
+
+    <div class="btn-row" id="next-3" style="display:none;">
+      <button class="btn btn-next" onclick="go(4)">Continue to Closure Report →</button>
+    </div>
+  </div>
+
+  <!-- ── STEP 4: CLOSURE ── -->
+  <div class="panel" id="panel-4">
+    <div class="panel-head">
+      <div class="panel-head-text">
+        <h2>CAPA Closure Report</h2>
+        <p>Once all actions are complete and effectiveness has been confirmed, Claude will draft a formal closure summary ready for QMS entry and audit review.</p>
+      </div>
+      <div class="step-badge">Step 4 of 4</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Closure Inputs</div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Deviation Reference</label>
+          <input type="text" id="s4-devref" placeholder="e.g. DEV-2024-0142">
+        </div>
+        <div class="field">
+          <label>CAPA Reference</label>
+          <input type="text" id="s4-caparef" placeholder="e.g. CAPA-2024-0089">
+        </div>
+        <div class="field">
+          <label>CAPA Opened</label>
+          <input type="text" id="s4-opened" placeholder="DD-MMM-YYYY">
+        </div>
+        <div class="field">
+          <label>CAPA Closed</label>
+          <input type="text" id="s4-closed" placeholder="DD-MMM-YYYY">
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="field" style="margin-bottom:16px;">
+        <label>Actions Completed</label>
+        <textarea id="s4-actions" rows="4" placeholder="List each corrective and preventive action that was completed, with completion date and evidence reference..."></textarea>
+        <div class="field-hint">Auto-filled from Step 3 — update to reflect actual completed actions</div>
+      </div>
+      <div class="field" style="margin-bottom:16px;">
+        <label>Effectiveness Evidence</label>
+        <textarea id="s4-evidence" rows="4" placeholder="Summarise the data or observations used to confirm the CAPA was effective — e.g. monitoring results, audit findings, recurrence checks, training completion records..."></textarea>
+      </div>
+      <div class="field">
+        <label>Effectiveness Assessment Outcome</label>
+        <select id="s4-outcome">
+          <option value="Effective — all criteria met">Effective — all criteria met</option>
+          <option value="Partially effective — additional monitoring required">Partially effective — additional monitoring required</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="runStep4()">▶ &nbsp;Generate Closure Report</button>
+    </div>
+
+    <div class="loader" id="load-4"><div class="spin"></div> Drafting closure report...</div>
+
+    <div class="output-box" id="out-4">
+      <div class="output-bar">
+        <span class="output-bar-label">CAPA Closure Report</span>
+        <button class="btn-copy" onclick="copyText('out-4-body')">Copy</button>
+      </div>
+      <div class="output-body" id="out-4-body"></div>
+    </div>
+
+    <div class="btn-row" id="next-4" style="display:none;">
+      <button class="btn btn-outline" onclick="resetAll()">↺ &nbsp;Start New Case</button>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ── STATE ──
+const S = {
+  step: 1,
+  desc: '', product: '', area: '',
+  rootCause: '', capaActions: '',
+  method: '5why'
+};
+
+// ── API ──
+const getKey = () => document.getElementById('apiKey').value.trim();
+
+function updateDot() {
+  const k = getKey();
+  document.getElementById('apiDot').className = 'api-dot' + (k.startsWith('sk-ant-') ? ' ok' : '');
+}
+
+async function callClaude(system, user) {
+  const key = getKey();
+  if (!key) throw new Error('Please enter your Anthropic API key at the top of the page.');
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1500,
+      system,
+      messages: [{ role: 'user', content: user }]
+    })
+  });
+
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    throw new Error(e?.error?.message || `API error ${res.status}`);
+  }
+
+  const data = await res.json();
+  return data.content?.[0]?.text || '';
+}
+
+// ── NAVIGATION ──
+function go(n) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.step-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`panel-${n}`).classList.add('active');
+  document.getElementById(`tab-${n}`).classList.add('active');
+  S.step = n;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── UI HELPERS ──
+function showLoad(n) { document.getElementById(`load-${n}`).classList.add('visible'); }
+function hideLoad(n) { document.getElementById(`load-${n}`).classList.remove('visible'); }
+
+function showOut(n, text) {
+  document.getElementById(`out-${n}-body`).textContent = text;
+  document.getElementById(`out-${n}`).classList.add('visible');
+  document.getElementById(`next-${n}`).style.display = 'flex';
+  document.getElementById(`tab-${n}`).classList.add('done');
+}
+
+function showErr(n, msg) {
+  document.getElementById(`out-${n}-body`).textContent = `Error: ${msg}`;
+  document.getElementById(`out-${n}`).classList.add('visible');
+}
+
+function copyText(id) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = 'Copied ✓';
+    setTimeout(() => btn.textContent = orig, 1500);
+  });
+}
+
+function selectMethod(m) {
+  S.method = m;
+  document.getElementById('method-5why').classList.toggle('selected', m === '5why');
+  document.getElementById('method-ishikawa').classList.toggle('selected', m === 'ishikawa');
+}
+
+function resetAll() {
+  document.querySelectorAll('.output-box').forEach(b => b.classList.remove('visible'));
+  document.querySelectorAll('[id^="next-"]').forEach(b => b.style.display = 'none');
+  document.querySelectorAll('.step-tab').forEach(t => t.classList.remove('done'));
+  document.getElementById('s1-alert').classList.remove('visible');
+  document.getElementById('s1-desc').value = '';
+  document.getElementById('s2-findings').value = '';
+  document.getElementById('s4-evidence').value = '';
+  go(1);
+}
+
+// ── STEP 1 ──
+async function runStep1() {
+  const desc     = document.getElementById('s1-desc').value.trim();
+  const product  = document.getElementById('s1-product').value.trim();
+  const area     = document.getElementById('s1-area').value.trim();
+  const date     = document.getElementById('s1-date').value.trim();
+  const detected = document.getElementById('s1-detected').value.trim();
+  const gxp      = document.getElementById('s1-gxp').value;
+  const stage    = document.getElementById('s1-stage').value;
+
+  if (!desc) return alert('Please describe the quality event.');
+
+  S.desc = desc;
+  S.product = product;
+
+  const system = `You are a pharmaceutical Quality Assurance specialist. Produce structured, factual intake summaries for quality events. Do not speculate on root cause — that is for the investigation phase.`;
+
+  const user = `Produce a structured intake summary for this quality event.
+
+EVENT DESCRIPTION:
+${desc}
+
+PRODUCT / MATERIAL: ${product || 'Not specified'}
+PROCESS / AREA: ${area || 'Not specified'}
+DATE OF OCCURRENCE: ${date || 'Not specified'}
+DATE DETECTED: ${detected || 'Not specified'}
+GxP CONTEXT: ${gxp}
+STAGE: ${stage}
+
+Return these sections:
+
+1. EVENT SUMMARY
+What happened, where, and when — 2–3 clear sentences.
+
+2. EVENT TYPE
+Classify as one of: Manufacturing deviation / Laboratory deviation (OOS/OOT) / Documentation error / Equipment failure / Environmental excursion / Supply chain issue / Change control deviation / Other
+
+3. PRELIMINARY SEVERITY
+Critical / Major / Minor — with brief rationale.
+
+4. PRODUCT / PATIENT IMPACT ASSESSMENT
+- Released product potentially affected: Yes / No / Under investigation
+- Potential patient safety impact: Yes / No / Cannot determine
+- Market action potentially indicated: Yes / No / Too early to determine
+
+5. IMMEDIATE CONTAINMENT ACTIONS REQUIRED
+Actions to take before investigation begins (e.g. quarantine batch, stop line, notify QP).
+
+6. INVESTIGATION SCOPE
+What processes, systems, batches, or time periods should be included.
+
+7. MISSING INFORMATION
+What additional information is needed to complete the intake record.`;
+
+  showLoad(1);
+
+  try {
+    const result = await callClaude(system, user);
+
+    // Flag potential patient safety impact
+    if (/patient safety.*yes|safety impact.*yes|recall.*yes/i.test(result)) {
+      document.getElementById('s1-alert').classList.add('visible');
+    }
+
+    showOut(1, result);
+
+    // Auto-populate Step 2
+    document.getElementById('s2-dev').value = desc;
+    document.getElementById('s2-product').value = product || '';
+
+  } catch (err) {
+    showErr(1, err.message);
+  } finally {
+    hideLoad(1);
+  }
+}
+
+// ── STEP 2 ──
+async function runStep2() {
+  const dev      = document.getElementById('s2-dev').value.trim();
+  const findings = document.getElementById('s2-findings').value.trim();
+  const product  = document.getElementById('s2-product').value.trim();
+  const type     = document.getElementById('s2-type').value;
+
+  if (!dev) return alert('Please enter the deviation summary.');
+
+  const method = S.method;
+
+  const system = `You are a pharmaceutical Quality Assurance specialist conducting root cause investigations. Be factual. Clearly flag any point where an assumption is made due to missing data.`;
+
+  let user = '';
+
+  if (method === '5why') {
+    user = `Conduct a 5-Why root cause analysis for this pharmaceutical quality deviation.
+
+DEVIATION:
+${dev}
+
+PRODUCT / PROCESS: ${product || 'Not specified'}
+DEVIATION TYPE: ${type}
+INVESTIGATION FINDINGS TO DATE:
+${findings || 'No investigation data available at this stage'}
+
+Structure your response as:
+
+PROBLEM STATEMENT
+One clear sentence — what happened, not why.
+
+5-WHY CHAIN
+Why 1: [question]
+→ Answer: [answer — flag as ASSUMPTION if not supported by known facts]
+
+Why 2: [question]
+→ Answer: [flag assumptions]
+
+Why 3: [question]
+→ Answer: [flag assumptions]
+
+Why 4: [question]
+→ Answer: [flag assumptions]
+
+Why 5: [question]
+→ Root cause answer
+
+ROOT CAUSE STATEMENT
+One clear sentence.
+
+ROOT CAUSE CATEGORY
+Human error / Procedural / Equipment / Environmental / Material / Process deficiency / Management system
+
+CONTRIBUTING FACTORS
+Secondary factors that contributed but are not the primary root cause.
+
+DATA GAPS
+Points in the analysis where assumptions were made — flag each for follow-up investigation.
+
+CAPA TRIGGER
+Corrective action only / Preventive action only / Both required`;
+
+  } else {
+    user = `Conduct an Ishikawa (fishbone) root cause analysis for this pharmaceutical quality deviation.
+
+PROBLEM STATEMENT: ${dev}
+PRODUCT / PROCESS: ${product || 'Not specified'}
+INVESTIGATION FINDINGS: ${findings || 'No investigation data available at this stage'}
+
+Analyse potential causes across all six Ishikawa categories. For each cause mark as:
+CONFIRMED — supported by investigation data
+POSSIBLE — plausible but unconfirmed; requires follow-up
+UNLIKELY — considered and ruled out (state reason)
+
+1. MAN (People)
+Operator error, training gaps, fatigue, communication, staffing.
+
+2. MACHINE (Equipment)
+Malfunction, calibration, maintenance, qualification.
+
+3. METHOD (Process / Procedure)
+SOP deficiency, unclear instructions, process design, validation gaps.
+
+4. MATERIAL
+Raw material quality, supplier change, incorrect material, storage.
+
+5. MEASUREMENT
+Analytical method, sample preparation, analyst technique, equipment.
+
+6. ENVIRONMENT
+Temperature, humidity, contamination, facility, HVAC.
+
+MOST LIKELY ROOT CAUSE(S)
+Top 1–3 causes ranked by likelihood with evidence basis.
+
+RECOMMENDED NEXT INVESTIGATION STEPS
+Specific actions needed to confirm the root cause.`;
+  }
+
+  showLoad(2);
+
+  try {
+    const result = await callClaude(system, user);
+    S.rootCause = result;
+    showOut(2, result);
+
+    // Auto-populate Step 3 with extracted root cause hint
+    document.getElementById('s3-rc').value = 'Review root cause analysis above and enter confirmed root cause here.';
+
+  } catch (err) {
+    showErr(2, err.message);
+  } finally {
+    hideLoad(2);
+  }
+}
+
+// ── STEP 3 ──
+async function runStep3() {
+  const rc         = document.getElementById('s3-rc').value.trim();
+  const category   = document.getElementById('s3-category').value;
+  const severity   = document.getElementById('s3-severity').value;
+  const recurrence = document.getElementById('s3-recurrence').value;
+  const contrib    = document.getElementById('s3-contrib').value.trim();
+
+  if (!rc || rc.includes('Review root cause')) return alert('Please enter the confirmed root cause.');
+
+  S.rootCause = rc;
+
+  const system = `You are a pharmaceutical Quality Assurance specialist drafting CAPA plans. Produce specific, measurable, actionable plans — avoid vague actions. Each action must have a clear owner (role, not name), timeline, and verifiable success criterion.`;
+
+  const user = `Draft a structured CAPA plan for this pharmaceutical quality deviation.
+
+CONFIRMED ROOT CAUSE: ${rc}
+ROOT CAUSE CATEGORY: ${category}
+SEVERITY: ${severity}
+RECURRENCE RISK: ${recurrence}
+CONTRIBUTING FACTORS: ${contrib || 'None identified'}
+PRODUCT / PROCESS: ${S.product || 'Not specified'}
+
+Draft a CAPA plan with:
+
+CORRECTIVE ACTIONS
+(Fix the specific failure that occurred)
+
+For each action:
+- Action: [specific description]
+- Owner: [role / department]
+- Target completion: [relative, e.g. 30 days from CAPA approval]
+- Success criterion: [measurable — how is completion verified?]
+- Evidence required: [documented proof of completion]
+
+PREVENTIVE ACTIONS
+(Prevent recurrence and prevent similar failures elsewhere)
+
+For each action:
+- Action: [specific description]
+- Scope: [which products / processes / sites]
+- Owner: [role / department]
+- Target completion: [relative]
+- Success criterion: [measurable]
+- Evidence required: [documented proof]
+
+EFFECTIVENESS CRITERIA
+- Metric to monitor:
+- Target / threshold:
+- Monitoring period:
+- Responsible role:
+
+CAPA RISK SUMMARY
+- Risk if not completed on time:
+- Interim controls required: Yes / No — if yes, specify
+
+FLAG any action requiring change control, revalidation, or regulatory notification.`;
+
+  showLoad(3);
+
+  try {
+    const result = await callClaude(system, user);
+    S.capaActions = result;
+    showOut(3, result);
+
+    // Auto-populate Step 4
+    document.getElementById('s4-actions').value = 'Review CAPA plan above and summarise completed actions here with dates and evidence references.';
+
+  } catch (err) {
+    showErr(3, err.message);
+  } finally {
+    hideLoad(3);
+  }
+}
+
+// ── STEP 4 ──
+async function runStep4() {
+  const devref   = document.getElementById('s4-devref').value.trim();
+  const caparef  = document.getElementById('s4-caparef').value.trim();
+  const opened   = document.getElementById('s4-opened').value.trim();
+  const closed   = document.getElementById('s4-closed').value.trim();
+  const actions  = document.getElementById('s4-actions').value.trim();
+  const evidence = document.getElementById('s4-evidence').value.trim();
+  const outcome  = document.getElementById('s4-outcome').value;
+
+  if (!evidence) return alert('Please enter the effectiveness evidence before generating the closure report.');
+
+  const system = `You are a pharmaceutical Quality Assurance specialist drafting formal CAPA closure reports for QMS entry. Write in past tense, third person. Formal, factual, audit-ready. Suitable for review by a regulatory inspector.`;
+
+  const user = `Draft a formal CAPA closure report for QMS entry.
+
+DEVIATION REFERENCE: ${devref || 'Not specified'}
+CAPA REFERENCE: ${caparef || 'Not specified'}
+PRODUCT / PROCESS: ${S.product || 'Not specified'}
+CAPA OPENED: ${opened || 'Not specified'}
+CAPA CLOSED: ${closed || 'Not specified'}
+CONFIRMED ROOT CAUSE: ${S.rootCause || 'See investigation record'}
+ACTIONS COMPLETED: ${actions}
+EFFECTIVENESS EVIDENCE: ${evidence}
+EFFECTIVENESS OUTCOME: ${outcome}
+
+Draft closure report with these sections:
+
+1. EXECUTIVE SUMMARY
+3–5 sentences: what was the deviation, what root cause was confirmed, what actions were taken, how effectiveness was confirmed.
+
+2. ORIGINAL DEVIATION SUMMARY
+Brief factual description of the quality event.
+
+3. ROOT CAUSE
+Confirmed root cause and category.
+
+4. CORRECTIVE ACTIONS — COMPLETION SUMMARY
+Each action, completion date, evidence reference, outcome.
+
+5. PREVENTIVE ACTIONS — COMPLETION SUMMARY
+Each action, scope, completion date, evidence reference, outcome.
+
+6. EFFECTIVENESS ASSESSMENT SUMMARY
+How effectiveness was assessed, data reviewed, criteria met.
+
+7. LESSONS LEARNED
+Broader lessons for the quality system; implications for other processes or sites.
+
+8. CLOSURE STATEMENT
+Formal statement confirming: all actions complete, effectiveness confirmed, record complete for audit purposes.`;
+
+  showLoad(4);
+
+  try {
+    const result = await callClaude(system, user);
+    showOut(4, result);
+  } catch (err) {
+    showErr(4, err.message);
+  } finally {
+    hideLoad(4);
+  }
+}
+</script>
+</body>
+</html>
